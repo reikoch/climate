@@ -1,5 +1,8 @@
 # retrieve global weather data 2022
 
+library(dplyr)
+library(readr)
+
 tf <- tempfile('climate', fileext = '.tar.gz')
 download.file(url = 'https://www.ncei.noaa.gov/data/global-summary-of-the-day/archive/2022.tar.gz',
               destfile = tf)
@@ -36,3 +39,16 @@ coltypes <- readr::cols(STATION='c',
                         )
 dat <- dplyr::bind_rows(lapply(list.files(path='2022', full.names = TRUE),
                               readr::read_csv, col_types=coltypes))
+
+# fix missing values
+dat$DEWP <- ifelse(dat$DEWP == 9999.9, NA, dat$DEWP)
+dat$SLP <- ifelse(dat$SLP == 9999.9, NA, dat$SLP)
+dat$STP <- ifelse(dat$STP == 999.9, NA, dat$STP)
+dat$VISIB <- ifelse(dat$VISIB == 999.9, NA, dat$VISIB)
+dat$WDSP <- ifelse(dat$WDSP == 999.9, NA, dat$WDSP)
+dat$MXSPD <- ifelse(dat$MXSPD == 999.9, NA, dat$MXSPD)
+dat$GUST <- ifelse(dat$GUST == 999.9, NA, dat$GUST)
+dat$MAX <- ifelse(dat$MAX == 9999.9, NA, dat$MAX)
+dat$MIN <- ifelse(dat$MIN == 9999.9, NA, dat$MIN)
+dat$PRCP <- ifelse(dat$PRCP == 99.99, 0, dat$PRCP)
+dat$SNDP <- ifelse(dat$SNDP == 999.9, 0, dat$SNDP)
