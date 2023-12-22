@@ -41,6 +41,7 @@ dat <- dplyr::bind_rows(lapply(list.files(path='2022', full.names = TRUE),
                               readr::read_csv, col_types=coltypes))
 
 # fix missing values
+dat$ELEVATION <- ifelse(dat$ELEVATION == -999.9, NA, dat$ELEVATION)
 dat$DEWP <- ifelse(dat$DEWP == 9999.9, NA, dat$DEWP)
 dat$SLP <- ifelse(dat$SLP == 9999.9, NA, dat$SLP)
 dat$STP <- ifelse(dat$STP == 999.9, NA, dat$STP)
