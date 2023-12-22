@@ -52,3 +52,9 @@ dat$MAX <- ifelse(dat$MAX == 9999.9, NA, dat$MAX)
 dat$MIN <- ifelse(dat$MIN == 9999.9, NA, dat$MIN)
 dat$PRCP <- ifelse(dat$PRCP == 99.99, 0, dat$PRCP)
 dat$SNDP <- ifelse(dat$SNDP == 999.9, 0, dat$SNDP)
+
+# metricize
+dat <- dat |> 
+  dplyr::mutate(dplyr::across(c('TEMP', 'DEWP', 'MAX', 'MIN'), ~ (.x -32)/9*5)) |> 
+  dplyr::mutate(VISIB=VISIB*1.60934, PRCP=PRCP*25.4, SNDP=SNDP*25.4,
+                WDSP=WDSP*0.5144444, MXSPD=MXSPD*0.5144444, GUST=GUST*0.5144444)
