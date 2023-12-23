@@ -54,8 +54,23 @@ dat$MIN <- ifelse(dat$MIN == 9999.9, NA, dat$MIN)
 dat$PRCP <- ifelse(dat$PRCP == 99.99, 0, dat$PRCP)
 dat$SNDP <- ifelse(dat$SNDP == 999.9, 0, dat$SNDP)
 
+# fix missing elevations if repair_elevations is available
+if (file.exists('repair_elevation.rds')) {
+  repair_elevation <- readr::read_rds('repair_elevation.rds')
+  dat <- dplyr::left_join(dat, repair_elevation, by = 'STATION', suffix = c('', '.y')) |>
+    dplyr::mutate(ELEVATION=dplyr::coalesce(ELEVATION, ELEVATION.y)) |> 
+    dplyr::select(-ELEVATION.y)
+}
+
+# remove stations with unknown location
+dat <- dat |> 
+  dplyr::filter(!is.na(LATITUDE))
+
 # metricize
 dat <- dat |> 
   dplyr::mutate(dplyr::across(c('TEMP', 'DEWP', 'MAX', 'MIN'), ~ (.x -32)/9*5)) |> 
   dplyr::mutate(VISIB=VISIB*1.60934, PRCP=PRCP*25.4, SNDP=SNDP*25.4,
                 WDSP=WDSP*0.5144444, MXSPD=MXSPD*0.5144444, GUST=GUST*0.5144444)
+
+# stations
+stations <- unique(dat[,c('STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'NAME')])
