@@ -63,9 +63,10 @@ if (file.exists('repair_elevation.rds')) {
 }
 
 # remove stations with unknown location
+# remove IKERMIUARSUK April data, they are completely off
 dat <- dat |> 
-  dplyr::filter(!is.na(LATITUDE))
-
+  dplyr::filter(!is.na(LATITUDE), (STATION!='04382099999' | lubridate::month(DATE)!=4))
+  
 # metricize
 dat <- dat |> 
   dplyr::mutate(dplyr::across(c('TEMP', 'DEWP', 'MAX', 'MIN'), ~ (.x -32)/9*5)) |> 
