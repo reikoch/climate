@@ -61,6 +61,8 @@ if (file.exists('repair_elevation.rds')) {
     dplyr::mutate(ELEVATION=dplyr::coalesce(ELEVATION, ELEVATION.y)) |> 
     dplyr::select(-ELEVATION.y)
 }
+# use km for elevation for numerical reasons
+dat$ELEVATION <- dat$ELEVATION/1000
 
 # remove stations with unknown location
 # remove IKERMIUARSUK April data, they are completely off
