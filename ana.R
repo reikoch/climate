@@ -1,13 +1,20 @@
 # check volatility and count number of records per station
 
-dat <- dat |> group_by(STATION) |> mutate(delta= ifelse(DATE==lag(DATE)+1, TEMP-lag(TEMP), NA))
-volatility <- dat |> group_by(STATION) |> summarise(volatil=mean(abs(delta), na.rm = TRUE))
-nrecords <- dat |> group_by(STATION) |> tally()
-stations <- stations |> 
-  left_join(volatility) |> 
-  left_join(nrecords)
+library(dplyr)
+library(lme4)
+library(mixedup)
+library(tibble)
 
-yy <- lme4::lmer(TEMP ~ maxsun * ELEVATION + (maxsun|STATION),
+dat <- dat |> dplyr::group_by(STATION) |>
+  dplyr::mutate(delta= ifelse(DATE==lag(DATE)+1, TEMP-lag(TEMP), NA))
+volatility <- dat |> dplyr::group_by(STATION) |>
+  dplyr::summarise(volatil=mean(abs(delta), na.rm = TRUE))
+nrecords <- dat |> dplyr::group_by(STATION) |> tally()
+stations <- stations |> 
+  dplyr::left_join(volatility) |> 
+  dplyr::left_join(nrecords)
+
+yy <- lme4::lmer(TEMP ~ ELEVATION + maxsun + (maxsun|STATION),
                  control = lme4::lmerControl(optimizer = 'Nelder_Mead'),
                  data=subset(dat, STATION %in% subset(stations, n>300)$STATION))
 mixedup::summarise_model(yy)
