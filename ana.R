@@ -22,3 +22,7 @@ mixedup::summarise_model(yy)
 stations <- stations |> 
   dplyr::left_join(structure(tibble::rownames_to_column(lme4::ranef(yy)$STATION, 'STATION'),
                              names=c('STATION', 'rndi', 'rnd_maxsun')))
+ggplot(subset(stations, !is.na(rnd_maxsun)), aes(x=LONGITUDE, y=LATITUDE, color=rndi)) + geom_point()
+
+# problem: seasonal residuals
+ggplot(data = subset(dat2, STATION=='71796099999'), aes(x=DATE, y=res, color=TEMP)) + geom_point() + geom_smooth()
