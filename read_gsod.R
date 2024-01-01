@@ -44,3 +44,35 @@ dat <- dat |>
 
 # convert temperature to celsius
 dat$TEMP <- (dat$TEMP-32)/9*5
+
+
+## prepare sun angle parameters
+sundeclin <- function(N) -asin(0.3977885*cos(0.01720289*(N+10) + 0.0334*sin(0.01720289*(N-2))))
+
+dat1 <- dat |> 
+  dplyr::mutate(maxsun=sin(LATITUDE/180*pi)*sin(sundeclin(lubridate::yday(DATE))) +
+                  cos(LATITUDE/180*pi)*cos(sundeclin(lubridate::yday(DATE))),
+                sunspeed=ifelse(DATE==lag(DATE)+1, maxsun-lag(maxsun), NA))
+
+## prepare stations and its characteristics
+stations <- unique(dat1[,c('STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'NAME')])
+dat1 <- dat1 |>
+  dplyr::group_by(STATION) |>
+  dplyr::mutate(delta=ifelse(DATE==lag(DATE)+1, TEMP-lag(TEMP), NA))
+volatility <- dat1 |>
+  dplyr::group_by(STATION) |>
+  dplyr::summarise(volatil=mean(abs(delta), na.rm = TRUE))
+nrecords <- dat1 |>
+  dplyr::group_by(STATION) |> tally()
+stations <- stations |> 
+  dplyr::left_join(volatility) |> 
+  dplyr::left_join(nrecords)
+
+# model
+dat1000 <- subset(dat1, STATION %in% subset(stations, n>1000)$STATION, !is.na(sunspeed))
+(yy <- lme4::lmer(TEMP ~ ELEVATION + (maxsun * sunspeed|STATION),
+                 data = dat1000))
+mixedup::summarise_model(yy)
+
+ggplot(data=subset(dat1000, STATION %in% sample(stations$STATION, 5)),
+       aes(x=DATE, y=res, group=STATION, color=STATION)) + geom_smooth()
