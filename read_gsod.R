@@ -3,7 +3,7 @@
 library(dplyr)
 library(readr)
 
-years <- as.character(2020:2022)
+years <- as.character(2020:2023)
 
 for (year in years[!file.exists(years)]) {
   tf <- tempfile('climate', fileext = '.tar.gz')
@@ -55,7 +55,9 @@ dat1 <- dat |>
                 sunspeed=ifelse(DATE==lag(DATE)+1, maxsun-lag(maxsun), NA))
 
 ## prepare stations and its characteristics
-stations <- unique(dat1[,c('STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'NAME')])
+stations <- dat1[,c('STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'NAME')] |> 
+  dplyr::group_by(STATION) |> 
+  dplyr::slice_tail(n=1)
 dat1 <- dat1 |>
   dplyr::group_by(STATION) |>
   dplyr::mutate(delta=ifelse(DATE==lag(DATE)+1, TEMP-lag(TEMP), NA))
