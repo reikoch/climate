@@ -71,19 +71,28 @@ stations <- stations |>
   dplyr::left_join(nrecords)
 
 # model
-stat1000 <- subset(stations, n>1000)
-dat1000 <- subset(dat1, STATION %in% stat1000$STATION, !is.na(sunspeed))
-(yy <- lme4::lmer(TEMP ~ ELEVATION + (maxsun * sunspeed) + ((maxsun * sunspeed)|STATION),
-                 data = dat1000))
-dat1000$res <- residuals(yy)
-mixedup::summarise_model(yy)
-
-ggplot(data=subset(dat1000, STATION %in% sample(stat1000$STATION, 5)),
-       aes(x=DATE, y=res, group=STATION, color=STATION)) + geom_smooth()
+stat1000 <- subset(stations, n>1400)
+dat1000 <- subset(dat1, STATION %in% stat1000$STATION & !is.na(sunspeed))
 
 (yy2 <- lme4::lmer(TEMP ~ ELEVATION + maxsun + sunspeed + (maxsun + sunspeed | STATION), data=dat1000 ))
 dat1000$res2 <- residuals(yy2)
 summary(yy2)
 mixedup::summarise_model(yy2)
-xx <- stat1000 |> 
-  dplyr::bind_cols(lme4::ranef(yy2)$STATION)
+stat1000 <- stat1000 |> 
+  dplyr::bind_cols(lme4::ranef(yy2)$STATION) |> 
+  dplyr::rename(intercept=`(Intercept)`)
+
+ggplot(data=subset(dat1000, STATION %in% sample(stat1000$STATION, 5)),
+       aes(x=DATE, y=res2, group=STATION, color=STATION)) + geom_smooth()
+
+(yy3 <- lme4::lmer(TEMP ~ ELEVATION + maxsun + sunspeed + (sunspeed | STATION), data=dat1000 ))
+dat1000$res3 <- residuals(yy3)
+summary(yy3)
+stat1000 <- stat1000 |> 
+  dplyr::bind_cols(structure(lme4::ranef(yy3)$STATION, names=c('intercept3', 'sunspeed3')))
+
+(yy4 <- lme4::lmer(TEMP ~ ELEVATION + maxsun + sunspeed + (0+sunspeed | STATION), data=dat1000 ))
+dat1000$res4 <- residuals(yy4)
+summary(yy4)
+stat1000 <- stat1000 |> 
+  dplyr::bind_cols(structure(lme4::ranef(yy4)$STATION, names=c('sunspeed4')))
