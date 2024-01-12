@@ -45,9 +45,22 @@ dat <- dat |>
 # convert temperature to celsius
 dat$TEMP <- (dat$TEMP-32)/9*5
 
+# astronomical parameters, 
+# source: https://media4.obspm.fr/public/ressources_lu/pages_mouvement-terre-lune/stlp-elements-orbitaux.html
+ecc <- 0.0167086342
+tropyear <-  365.2421904 
+invdist <- function(N) 1+ecc*cos(2*pi*N/tropyear)
+distsun <- function(N) 1/(1+ecc*cos(2*pi*N/tropyear))
+sundeclin <- function(N) -0.3977885*cos(0.01720289*(N+10) + 0.0334*sin(0.01720289*(N-2)))
 
 ## prepare sun angle parameters
-sundeclin <- function(N) -0.3977885*cos(0.01720289*(N+10) + 0.0334*sin(0.01720289*(N-2)))
+sunrising <- function(N) 0.3977885*sin(0.01720289*(N+10) + 0.0334*sin(0.01720289*(N-2))) * 
+  0.01720289*(1+0.0334*cos(0.01720289*(N-2)))
+solation <- function(N, latitude) {
+  delta <- sundeclin(N)
+  H0 <- acos(tan(latitude)*tan(delta))
+  invdist(N)*invdist(N) * (H0*sin(latitude)*sin(delta) + cos(latitude)*cos(delta)*sin(H0)) 
+}
 
 dat1 <- dat |> 
   dplyr::mutate(maxsun=sin(LATITUDE/180*pi)*sundeclin(lubridate::yday(DATE)) +
@@ -96,3 +109,9 @@ dat1000$res4 <- residuals(yy4)
 summary(yy4)
 stat1000 <- stat1000 |> 
   dplyr::bind_cols(structure(lme4::ranef(yy4)$STATION, names=c('sunspeed4')))
+
+(yy5 <- lme4::lmer(TEMP ~ ELEVATION + maxsun + lagT + (0+lagT | STATION), data=dat1000 ))
+dat1000$res5 <- residuals(yy5)
+summary(yy5)
+stat1000 <- stat1000 |> 
+  dplyr::bind_cols(structure(lme4::ranef(yy5)$STATION, names=c('lagT5')))
