@@ -25,3 +25,15 @@ rho <- function(J2000T) {
   ecc <- ecc(J2000T)
   1.000001018*(1-ecc*ecc) / (1 + ecc*cos(C(J2000T) + M(J2000T)))
 }
+
+# mean longitude of sun
+L0 <- function(J2000T) (pi/180) * (280.46645 + J2000T*(36000.76983 + J2000T*0.0003032))
+
+# longitude of ascending node of moon
+omega <- function(J2000T) (pi/180) * (125.04452 + J2000T*(-1934.136261 + J2000T*(0.0020708 + J2000T/450000)))
+
+# apparent longitude of sun
+lambda <- function(J2000T) L0(J2000T) + C(J2000T) - 0.00569 - 0.00478*sin(omega(J2000T))
+
+# sun declination
+delta <- function(J2000T) asin(sin(epsilon(J2000T)) * sin(lambda(J2000T)))
