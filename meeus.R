@@ -9,7 +9,7 @@ epsilon <- function(J2000T) {
 }
 
 # mean anomaly of the sun
-M <- function(J2000T) (pi/180) * J2000T*(J2000T*(J2000T*-0.00000048 - 0.0001559) + 35999.05030) + 357.52910
+M <- function(J2000T) (pi/180) * (J2000T*(J2000T*(J2000T*-0.00000048 - 0.0001559) + 35999.05030) + 357.52910)
 
 # eccentricity of the Earth's orbit
 ecc <- function(J2000T) J2000T*(J2000T* -0.0000001236 - 0.000042037) + 0.016708617
