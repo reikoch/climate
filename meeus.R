@@ -5,7 +5,7 @@ J2000_cent <- function(dt) {
 
 # mean obliquity of the ecliptic
 epsilon <- function(J2000T) {
-  ((5.03611111111e-07*J2000T - 1.63888888889e-07)*J2000T - 0.0130041666667)*J2000T + 23.4392911111
+  (pi/180)*(((5.03611111111e-07*J2000T - 1.63888888889e-07)*J2000T - 0.0130041666667)*J2000T + 23.4392911111)
 }
 
 # mean anomaly of the sun
@@ -36,4 +36,4 @@ omega <- function(J2000T) (pi/180) * (125.04452 + J2000T*(-1934.136261 + J2000T*
 lambda <- function(J2000T) L0(J2000T) + C(J2000T) - 0.00569 - 0.00478*sin(omega(J2000T))
 
 # sun declination
-delta <- function(J2000T) asin(sin(epsilon(J2000T)) * sin(lambda(J2000T)))
+declination <- function(J2000T) asin(sin(epsilon(J2000T)) * sin(lambda(J2000T)))
