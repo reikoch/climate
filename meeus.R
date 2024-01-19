@@ -42,11 +42,10 @@ declination <- function(J2000T) asin(sin(epsilon(J2000T)) * sin(lambda(J2000T)))
 # sunrise hour angle
 h0 <- function(J2000T, latitude) {
   x <- tan(declination(J2000T))*tan(latitude)
-  if (x< -1) 0 else
-    if (x>1) pi else acos(-x)
+  ifelse (x< -1, 0, ifelse(x>1, pi, acos(-x)))
 }
 
-# irradiation in kWh
+# irradiation in kWh per m^2 per day
 insolation <- function(J2000T, latitude) {
   rho <- rho(J2000T)
   h0 <- h0(J2000T, latitude)
