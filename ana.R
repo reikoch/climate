@@ -6,23 +6,23 @@ library(mixedup)
 library(tibble)
 
 dat <- dat |> dplyr::group_by(STATION) |>
-  dplyr::mutate(delta= ifelse(DATE==lag(DATE)+1, TEMP-lag(TEMP), NA))
-volatility <- dat |> dplyr::group_by(STATION) |>
-  dplyr::summarise(volatil=mean(abs(delta), na.rm = TRUE))
-nrecords <- dat |> dplyr::group_by(STATION) |> tally()
-stations <- stations |> 
-  dplyr::left_join(volatility) |> 
-  dplyr::left_join(nrecords)
+  dplyr::mutate(
+    insolation=insolation(J2000_cent(as.POSIXct(DATE)+43200), pi*LATITUDE/180),
+    delta_sol= ifelse(DATE==lag(DATE)+1, insolation-lag(insolation), NA),
+    maxsun = declination(J2000_cent(as.POSIXct(DATE)+43200))+pi*(90-LATITUDE)/180) |> 
+  ungroup()
+dat0 <- dplyr::filter(dat, !is.na(delta_sol))
+stat800 <- sample(subset(stations, n>1400)$STATION, 800)
+dat800 <- dplyr::filter(dat0, STATION %in% stat800)
 
-yy <- lme4::lmer(TEMP ~ ELEVATION + maxsun + (maxsun|STATION),
-                 control = lme4::lmerControl(optimizer = 'Nelder_Mead'),
-                 data=subset(dat, STATION %in% subset(stations, n>300)$STATION))
-mixedup::summarise_model(yy)
 
-stations <- stations |> 
-  dplyr::left_join(structure(tibble::rownames_to_column(lme4::ranef(yy)$STATION, 'STATION'),
-                             names=c('STATION', 'rndi', 'rnd_maxsun')))
-ggplot(subset(stations, !is.na(rnd_maxsun)), aes(x=LONGITUDE, y=LATITUDE, color=rndi)) + geom_point()
+# (yy <- lme4::lmer(TEMP ~ ELEVATION + insolation + maxsun + delta_sol + (delta_sol|STATION),
+#                  control = lme4::lmerControl(optimizer = 'Nelder_Mead'),
+#                  data=dat800))
+# mixedup::summarise_model(yy)
 
-# problem: seasonal residuals
-ggplot(data = subset(dat2, STATION=='71796099999'), aes(x=DATE, y=res, color=TEMP)) + geom_point() + geom_smooth()
+# best model so far
+(yy1 <- lme4::lmer(TEMP ~ ELEVATION + insolation + (insolation|STATION) + maxsun + delta_sol + (delta_sol|STATION),
+                  control = lme4::lmerControl(optimizer = 'Nelder_Mead'),
+                  data=dat800))
+mixedup::summarise_model(yy1)
