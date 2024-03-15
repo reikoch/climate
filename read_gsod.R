@@ -1,4 +1,5 @@
 # read temp data of selected years
+# maybe alternate source in https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year
 
 library(dplyr)
 library(readr)
