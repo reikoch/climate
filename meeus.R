@@ -1,4 +1,8 @@
 # helpful functions according to Meeus
+J2000c.date <- function(date) {
+  (as.numeric(date)-10957)/36525
+}
+
 J2000_cent <- function(dt) {
   (as.numeric(dt)-946728000.0)/3155760000.0
 }
