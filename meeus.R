@@ -1,11 +1,19 @@
 # helpful functions according to Meeus
-J2000c.date <- function(date) {
-  (as.numeric(date)-10957)/36525
-}
 
-J2000_cent <- function(dt) {
-  (as.numeric(dt)-946728000.0)/3155760000.0
-}
+# for dates noon is assumed
+# generic function to convert to Julian century in J2000 frame
+J2000T <- function(t) UseMethod("J2000T")
+J2000T.Date <- function(date) (as.numeric(date)-10957.5)/36525
+J2000T.POSIXct <- function(dt) (as.numeric(dt)-946728000.0)/3155760000.0
+J2000T.default <- function(x) stop('Only objects of class "Date" or "POSIXct" can be converted. ',
+                                   'Here it was a ', class(x))
+
+# generic function to convert to Julian day
+JD <- function(t) UseMethod("JD")
+JD.POSIXct <- function(dt) as.numeric(dt)/86400 + 2440587.5
+JD.Date <- function(date) as.numeric(date)+2440588
+JD.default <- function(x) stop('Only objects of class "Date" or "POSIXct" can be converted. ',
+                                   'Here it was a ', class(x))
 
 # mean obliquity of the ecliptic
 epsilon <- function(J2000T) {
