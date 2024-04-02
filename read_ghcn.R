@@ -36,4 +36,9 @@ good_stations <- unique(dplyr::group_by(dat2024, station)
                         |> dplyr::filter(n>nmin)
                         |> dplyr::select(station))
 
-good2024 <- dplyr::left_join(good_stations, dat2024)
+good2024 <- dplyr::left_join(good_stations, dat2024) |> 
+  dplyr::mutate(J2000T = J2000T(date), .after=date)
+
+# some visualization
+ggplot(good2024, aes(x=TMIN, y=TMAX)) + geom_point() + geom_smooth()
+
